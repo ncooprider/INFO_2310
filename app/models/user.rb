@@ -2,7 +2,7 @@ class User < ActiveRecord::Base
   attr_accessor :password
   attr_accessible :email, :name, :password
   
-  validates :password, presence: true
+  validates :password, presence: true, if: "hashed_password.blank?"
   
   validates :name, presence: true,
                       length: { minimum: 4, maximum: 50 }
@@ -20,8 +20,19 @@ class User < ActiveRecord::Base
     self.salt ||= Digest::SHA256.hexdigest("--#{Time.now.to_s}- -#{email}--")
     self.hashed_password = encrypt(password)
   end
-
+  
+  def self.authenticate(email, plain_text_password)
+    found_user= User.where("email = ? AND hashed_password = ?", email, encrypt(plain_text_password))
+	if found_user.blank?
+	  nil
+	else
+	  found_user
+	end
+  end
+  
   def encrypt(raw_password)
     Digest::SHA256.hexdigest("--#{salt}--#{raw_password}--")
   end
+  
+  
 end

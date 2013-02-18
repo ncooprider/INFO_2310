@@ -3,7 +3,7 @@ require 'spec_helper'
 describe "GET /users/id" do
   
   before do
-    @user = User.create! name: "Matt", email: "goggin13@gmail.com"
+    @user = User.create! name: "Matt", email: "goggin13@gmail.com", password: "foobar"
     3.times { |i| @user.micro_posts.create! content: "hello world - #{i}" }
   end
   it "should display the number of posts the user has" do

@@ -28,15 +28,15 @@ class User < ActiveRecord::Base
   def self.authenticate(email, plain_text_password)
 	salt = Digest::SHA256.hexdigest("--#{Time.now.to_s}- -#{email}--")
 	hashed_password = Digest::SHA256.hexdigest("--#{salt}--#{plain_text_password}--")
-    found_user= self.where("email = ?", email).first
+    found_user= self.where("email = ?", email)
 	if found_user.blank?
 	  return nil
 	else
-	  if found_user.hashed_password == found_user.encrypt(plain_text_password)
-		return found_user
-	  else
-	  	return nil
-	  end
+	  found_user.each {|value|
+		if value.hashed_password == value.encrypt(plain_text_password)
+		  return value
+		end
+		return nil}
 	end
   end
   

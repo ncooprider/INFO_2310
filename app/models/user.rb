@@ -15,6 +15,9 @@ class User < ActiveRecord::Base
   has_many :micro_posts
 
   before_save :encrypt_password
+  
+  has_many :relationships, foreign_key: "follower_id", dependent: :destroy
+  has_many :followed_users, through: :relationships, source: :followed
                 
   def encrypt_password
     self.salt ||= Digest::SHA256.hexdigest("--#{Time.now.to_s}- -#{email}--")
@@ -38,6 +41,29 @@ class User < ActiveRecord::Base
 		end
 		return nil}
 	end
+  end
+  
+  def feed(paginate_options={page: 1})
+    followed_user_ids = followed_users.map { |u| u.id }
+    MicroPost.where('user_id in (?) or user_id =?', followed_user_ids, id)
+						.order('created_at desc')
+						.paginate(paginate_options)
+  end
+  
+  # Returns the Relationship object this user has with other_user
+  # or nil if no relationship exists
+  def following?(other_user)
+    relationships.find_by_followed_id(other_user.id)
+  end
+
+  # create a Relationship object where this user is following other_user
+  def follow!(other_user)
+	relationships.create!(followed_id: other_user.id)
+  end
+
+  # destroy the Relationship object where this user is following other_user
+  def unfollow!(other_user)
+	relationships.find_by_followed_id(other_user.id).destroy
   end
   
 end

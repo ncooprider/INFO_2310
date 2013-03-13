@@ -10,11 +10,17 @@
   <%= @user.email %>
 </p>
 
+<% if signed_in? %>
+ <%= render 'follow_form' %>
+<% end %>
+
 <p>
   <%= pluralize(@user.micro_posts.length, "MicroPost") %>
 </p>
 
-<%= render @user.micro_posts %>
+<%= will_paginate @collection %>
+<%= render @collection %>
+<%= will_paginate @collection %>
 
 <%= link_to 'Edit', edit_user_path(@user) %> |
 <%= link_to 'Back', users_path %>
